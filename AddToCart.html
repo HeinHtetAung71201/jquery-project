@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Store</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+    <style>
+        .items img{
+            height: 150px;
+            width: auto;
+            margin-bottom: -71px;
+            margin-left: 1rem;
+            transition: 0.5s;
+            margin-top: 10px;
+            
+        }
+        .items{
+            border: none;
+        }
+        .items:hover img{
+            transform: scale(1.04) rotate(-8deg);
+            
+        }
+        .cart img{
+            height: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-7  border-left-0 border">
+               <div class="d-flex justify-content-lg-between align-items-end p-3 ">
+                    <div class="logo">
+                        <H2 class=" text-primary">MY Store</H2>
+                        <small class=" text-black-50">using with bootstrap and jquery</small>
+                    </div>
+                    <div class="search&Category d-flex">
+                        <input type="text" class="form-control" id="search" style="width: 170px !important;" placeholder="Search here..">
+                        <select name="" id="select" class="custom-select bg-transparent ml-2 ">
+                            <option value="0">All Category</option>
+                        </select>
+                    </div>
+               </div>
+            
+                <div id="products" class="card-columns">
+                    <div class="d-flex justify-content-lg-between align-items-end p-3 ">
+                        <div class="logo">
+                            <H2 class=" text-primary">MY Store</H2>
+                            <small class=" text-black-50">using with bootstrap and jquery</small>
+                        </div>
+                        <div class="search&Category d-flex">
+                            <input type="text" class="form-control" id="search" style="width: 170px !important;" placeholder="Search here..">
+                            <select name="" id="select" class="custom-select bg-transparent ml-2 ">
+                                <option value="0">All Category</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="d-flex justify-content-lg-between align-items-end p-3 ">
+                    <div class="logo">
+                        <H2 class=" text-primary">My Cart</H2>
+                        <small class=" text-black-50">Added items into cart</small>
+                    </div>
+                    <div class="items-into-cart">
+                        <h4 class=" text-primary">
+                            <span class="qualtityOfItemsInCart">0</span>
+                            <i class="fas fa-shopping-cart"></i>
+                        </h4>
+                    </div>
+                </div>
+                <div class="cart">
+            
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script>
+          let products=[];
+        $.get("https://fakestoreapi.com/products", function (data) {
+                // $("#products").empty();
+                console.log(data);
+
+                products=data;
+
+                toShow(products);
+               
+            },
+        );
+        function toShow(ProductData){
+            $("#products").empty();
+            ProductData.map(items=>{
+                  
+                  $("#products").append(`
+                  <div class=" card items ">
+                           <img src="${items.image}" alt="" class=" card-img-top">
+                       <div class=" card-body border rounded">
+                           <h4 class=" card-title mt-5 overflow-hidden text-nowrap text-primary">${items.title}</h4>
+                           <p class=" card-text text-black-50 small"> ${toShort(items.description)}</p>
+                           <div class="d-flex justify-content-between align-items-end mt-3">
+                                <span class="font-weight-bold">${items.price}</span>
+                                <button class="btn btn-sm btn-outline-primary add-to-cart" data-id="${items.id}">
+                                Add <i class="fas fa-cart-plus"></i>
+                                </button>
+                            </div>
+                       </div>
+                       
+                   </div>
+                  `)
+              })
+        }
+        function toShort(content){
+            let max=150;
+            let ContentOfLength= content.length;
+            if(ContentOfLength>=max){
+                return content.substring(0,max)+"...";
+            }
+            else{
+                return content;
+            }
+        }
+      
+
+        $("#search").keyup(function () { 
+            let keyword= $(this).val().toLowerCase().trim();
+            // console.log(keyword.trim().length);
+            // if(keyword.trim()){
+                let filterProducts= products.filter(product=>{
+                if(product.title.toLowerCase().indexOf(keyword)>-1 || product.description.toLowerCase().indexOf(keyword)>-1 ){
+                    return product;
+                }
+            })
+                toShow(filterProducts);
+        });
+        $.get("https://fakestoreapi.com/products/categories",
+            function (CateG) {
+                console.log(CateG);
+                CateG.map(data=>{
+                    $("#select").append(`
+                    <option value="${data}">${data}</option>
+
+                `)
+                })
+               
+            }
+        );
+        $("#select").change(function () { 
+            let selectedCategory= $(this).val();
+            console.log(selectedCategory);  
+            let filteredCateG= products.filter(Catggory=>{
+                if(Catggory.category===selectedCategory){
+                    return Catggory;
+                }
+            })
+            toShow(filteredCateG);
+            if(selectedCategory==0){
+                toShow(products)
+            }
+        });
+
+        //cartSection
+        $("#products").delegate(".add-to-cart","click",function(){
+            let currentId= $(this).attr("data-id");
+            // console.log(currentId);
+            let productsInfo= products.filter(el=>el.id== currentId)[0];
+            // console.log(productsInfo);
+            if($(".itemsIntoCart").toArray().map(el=>el.getAttribute("dataId")).includes(`${currentId}`)){
+              alert("ERROR!! This Item's already added");
+            //    console.log(currentId);
+            }
+                else{
+                    
+                    $(".cart").append(`
+            <div class="card border-bottom border-left-0 border-right-0 border-top-0 itemsIntoCart" dataId=${productsInfo.id}>
+                        <div class="card-body">
+                            <div class="itemsInfo d-flex justify-content-between align-items-center">
+                                <img src="${productsInfo.image}" alt="">
+                                <button class="border-1 btn btn-outline-danger">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                            <p class="description pt-2"> 
+                                ${productsInfo.title}
+                            </p>
+                            <div class="AddandMinusItems&ItsPrice d-flex justify-content-around align-items-baseline">
+                                <div class="addMinus d-flex">
+                                    <button class="btn btn-group btn-outline-primary align-items-center mr-2">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" name="" id="" value="1" min="1" style="width:18%;" class=" rounded form-control">
+                                    <button class="btn btn-group btn-outline-primary align-items-center ml-2">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="price justify-content-end">
+                                    <p>$ <span>${productsInfo.price}</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            `);
+                }
+           
+        })
+</script>
+</body>
+</html>
